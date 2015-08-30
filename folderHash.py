@@ -22,17 +22,11 @@ def base64hash(pathtofile):
             hasher.update(data)
     return base64.b64encode(hasher.digest()).decode("utf-8")
 
-#t1=datetime.datetime.utcnow()
-
 base = sys.argv[1]
 (drive, basepath) = os.path.splitdrive(base)
-outputfilename = datetime.datetime.now().strftime("%Y%m%d.%H%M%S.") + os.path.normpath(basepath).replace(os.path.sep, '_') + '.csv'
-print(outputfilename)
+outputfilename = os.path.normpath(basepath).replace(os.path.sep, '_') + '.csv'
 with open(outputfilename, 'w+') as outputfile:
     outputcsv=csv.writer(outputfile, lineterminator="\n")
     for path, dirnames, filenames in os.walk(base):
         for filename in fnmatch.filter(filenames, '*.*'):
             outputcsv.writerow([strippath(base, path, filename), base64hash(os.path.join(path, filename))])
-
-#t2=datetime.datetime.utcnow()
-#print(t2-t1)
