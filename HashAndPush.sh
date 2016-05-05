@@ -1,6 +1,6 @@
 #!/bin/sh
 cd ~
-FOLDER="/volume1/photo/2015/2015_07_18"
+FOLDER="/volume1/photo/"
 python3 folderHash.py $FOLDER
 mv *.csv src/FolderHashes
 cd src/FolderHashes
