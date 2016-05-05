@@ -13,27 +13,28 @@ def strippath(base, path, filename):
     stripped = stripped.replace(os.path.sep, '/')
     return stripped
 
-def base64hash(pathtofile):
+def md5hash(pathtofile):
     hasher = hashlib.md5()
     with open(pathtofile, 'rb') as filetohash:
         while True:
             data=filetohash.read(3*1024*1024)
             if not data: break
             hasher.update(data)
-    return base64.b64encode(hasher.digest()).decode("utf-8")
+    return hasher.hexdigest()
 
 base = sys.argv[1]
 (drive, basepath) = os.path.splitdrive(base)
-outputfilename = os.path.normpath(basepath).replace(os.path.sep, '_') + '.csv'
+outputfilename = os.path.normpath(basepath).replace(os.path.sep, '_') + '.txt'
 with open(outputfilename, 'w+') as outputfile:
     begin_time = datetime.datetime.now()
-    outputcsv=csv.writer(outputfile, lineterminator="\n")
-    outputcsv.writerow([begin_time.strftime("%Y%m%d"), begin_time.strftime("%H%M%S")])
+    outputfile.write(begin_time.strftime("%Y%m%d%H%M%S\n"))
     for path, dirnames, filenames in os.walk(base):
         dirnames.sort()
         for filename in fnmatch.filter(filenames, '*.*'):
-            outputcsv.writerow([strippath(base, path, filename), base64hash(os.path.join(path, filename))])
+            outputfile.write(md5hash(os.path.join(path, filename)) + ' ' + strippath(base, path, filename) + '\n')
     end_time = datetime.datetime.now()
-    outputcsv.writerow([end_time.strftime("%Y%m%d"), end_time.strftime("%H%M%S")])
+    outputfile.write(end_time.strftime("%Y%m%d%H%M%S\n"))
     processing_time = end_time - begin_time
-    outputcsv.writerow([str(processing_time)])
+    outputfile.write(str(processing_time))
+with open(outputfilename + '.md5', 'w+') as md5checksumfile:
+    md5checksumfile.write(md5hash(outputfilename) + '\n')
