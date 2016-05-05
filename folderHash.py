@@ -26,7 +26,14 @@ base = sys.argv[1]
 (drive, basepath) = os.path.splitdrive(base)
 outputfilename = os.path.normpath(basepath).replace(os.path.sep, '_') + '.csv'
 with open(outputfilename, 'w+') as outputfile:
+    begin_time = datetime.datetime.now()
     outputcsv=csv.writer(outputfile, lineterminator="\n")
+    outputcsv.writerow([begin_time.strftime("%Y%m%d"), begin_time.strftime("%H%M%S")])
     for path, dirnames, filenames in os.walk(base):
+        dirnames.sort()
         for filename in fnmatch.filter(filenames, '*.*'):
             outputcsv.writerow([strippath(base, path, filename), base64hash(os.path.join(path, filename))])
+    end_time = datetime.datetime.now()
+    outputcsv.writerow([end_time.strftime("%Y%m%d"), end_time.strftime("%H%M%S")])
+    processing_time = end_time - begin_time
+    outputcsv.writerow([str(processing_time)])
