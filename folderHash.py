@@ -3,6 +3,7 @@ import fnmatch
 import os
 import hashlib
 import datetime
+import re
 
 def strip_path(base, path, filename):
     stripped = os.path.join(path, filename)
@@ -20,6 +21,15 @@ def md5_hash(pathtofile):
             hasher.update(data)
     return hasher.hexdigest()
 
+includes = ['*.*'] # for files only
+excludes = ['@eaDir'] # for dirs and files
+
+# transform glob patterns to regular expressions
+includes = r'|'.join([fnmatch.translate(x) for x in includes])
+excludes = r'|'.join([fnmatch.translate(x) for x in excludes]) or r'$.'
+
+
+
 base = sys.argv[1]
 (drive, basepath) = os.path.splitdrive(base)
 outputfilename = os.path.normpath(basepath).replace(os.path.sep, '_') + '.txt'
@@ -28,7 +38,10 @@ with open(outputfilename, mode='w', encoding='utf8', newline='\n') as outputfile
     begin_time = datetime.datetime.now()
     outputfile.write(begin_time.strftime("%Y%m%d%H%M%S\n"))
     for path, dirnames, filenames in os.walk(base):
+        dirnames[:] = [d for d in dirnames if not re.match(excludes, d)]
         dirnames.sort()
+        filenames = [f for f in filenames if not re.match(excludes, f)]
+        filenames = [f for f in filenames if re.match(includes, f)]
         filenames.sort()
         for filename in fnmatch.filter(filenames, '*.*'):
             outputfile.write(strip_path(base, path, filename) + ' ' + md5_hash(os.path.join(path, filename)) + '\n')
